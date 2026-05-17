@@ -10,8 +10,8 @@ class UserModel {
   final String language;
   final String currency;
   final bool isDarkMode;
-  final List<AddressModel> addresses;        // ✅ صح
-  final List<PaymentMethodModel> paymentMethods;  // ✅ صح
+  final List<AddressModel> addresses;
+  final List<PaymentMethodModel> paymentMethods;
 
   UserModel({
     required this.id,
@@ -37,8 +37,8 @@ class UserModel {
     String? language,
     String? currency,
     bool? isDarkMode,
-    List<AddressModel>? addresses,        // ✅ صح
-    List<PaymentMethodModel>? paymentMethods,  // ✅ صح
+    List<AddressModel>? addresses,
+    List<PaymentMethodModel>? paymentMethods,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -56,12 +56,7 @@ class UserModel {
   }
 
   factory UserModel.empty() {
-    return UserModel(
-      id: '',
-      name: '',
-      email: '',
-      memberType: 'Standard',
-    );
+    return UserModel(id: '', name: '', email: '', memberType: 'Standard');
   }
 
   bool get isLoggedIn => id.isNotEmpty;

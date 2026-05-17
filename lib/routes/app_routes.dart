@@ -33,12 +33,13 @@ import '../views/checkout/checkout_screen.dart';
 
 // Profile
 import '../views/profile/profile_screen.dart';
+import '../views/profile/edit_profile_screen.dart'; // ✅ جديد
 
 // Try-On
 import '../views/try_on/try_on_screen.dart';
 
-// Notifications   // ✅ جديد
-import '../views/notifications/notifications_screen.dart'; // ✅ جديد
+// Notifications
+import '../views/notifications/notifications_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
@@ -72,12 +73,12 @@ class AppRoutes {
 
     // Profile
     RouteNames.profile: (context) => const ProfileScreen(),
-
+    RouteNames.editProfile: (context) => const EditProfileScreen(), // ✅ جديد
     // Try-On
     RouteNames.tryOn: (context) => const TryOnScreen(),
 
-    // Notifications   // ✅ جديد
-    '/notifications': (context) => const NotificationsScreen(), // ✅ جديد
+    // Notifications
+    RouteNames.notifications: (context) => const NotificationsScreen(),
   };
 
   static void goToMain(BuildContext context) {
@@ -136,13 +137,17 @@ class AppRoutes {
     Navigator.pushNamed(context, RouteNames.profile);
   }
 
+  // ✅ جديد
+  static void goToEditProfile(BuildContext context) {
+    Navigator.pushNamed(context, RouteNames.editProfile);
+  }
+
   static void goToTryOn(BuildContext context) {
     Navigator.pushNamed(context, RouteNames.tryOn);
   }
 
-  // ✅ جديد: Notifications
   static void goToNotifications(BuildContext context) {
-    Navigator.pushNamed(context, '/notifications');
+    Navigator.pushNamed(context, RouteNames.notifications);
   }
 
   static void goBack(BuildContext context) {

@@ -6,9 +6,7 @@ import '../../controllers/cart_controller.dart';
 import '../../controllers/checkout_controller.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/fonts.dart';
-import '../../routes/app_routes.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../widgets/bottom_nav_bar.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -19,35 +17,6 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final controller = CheckoutController();
-  int _currentNavIndex = 3; // CART tab selected
-
-  void _onNavTap(int index) {
-    setState(() {
-      _currentNavIndex = index;
-    });
-
-    switch (index) {
-      case 0: // HOME
-        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-        break;
-      case 1: // SHOP
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/category-details',
-          (route) => false,
-        );
-        break;
-      case 2: // TRY-ON
-        Navigator.pushNamed(context, '/try-on');
-        break;
-      case 3: // CART
-        Navigator.pushNamed(context, '/cart');
-        break;
-      case 4: // PROFILE
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +30,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return Scaffold(
           backgroundColor: bgColor,
 
+          // ✅ AppBar مع زرار رجوع
           appBar: CustomAppBar(
             title: 'Checkout',
             showMenu: false,
+            showNotification: false,
             leading: IconButton(
               icon: Icon(
                 Icons.arrow_back,
@@ -73,11 +44,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          bottomNavigationBar: CustomBottomNavBar(
-            currentIndex: _currentNavIndex,
-            onTap: _onNavTap,
-          ),
-
+          // ❌ BottomNavBar اتشال
           body: controller.isProcessing
               ? _buildProcessingState()
               : SingleChildScrollView(
@@ -126,9 +93,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                       const SizedBox(height: 24),
 
+                      // ✅ زرار Place Order تحت الكلام
                       _buildPlaceOrderButton(cartController),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
@@ -220,9 +188,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
               GestureDetector(
-                onTap: () {
-                  // TODO: Edit address
-                },
+                onTap: () {},
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -585,18 +551,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       },
       child: Container(
+        width: double.infinity,
         height: 56,
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
               AppColors.primary.withValues(alpha: 0.8),
               AppColors.primary,
+              AppColors.primary.withValues(alpha: 0.9),
             ],
           ),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: AppColors.primary.withValues(alpha: 0.4),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -608,7 +578,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: TextStyle(
               fontFamily: AppFonts.label,
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
               color: Colors.white,
             ),
           ),

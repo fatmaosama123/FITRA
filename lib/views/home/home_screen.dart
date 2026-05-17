@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import '../../controllers/home_controller.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/fonts.dart';
-import '../../routes/app_routes.dart';
+import '../../widgets/ad_banner_carousel.dart';
+import '../../widgets/promo_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,23 +44,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 20),
 
+                // Ad Banner Carousel (5 seconds)
+                const AdBannerCarousel(),
+
+                const SizedBox(height: 28),
+
                 // Categories
-                _buildCategories(isDark),
+                _buildCategories(isDark, context),
 
                 const SizedBox(height: 28),
 
                 // Trending Section
-                _buildTrendingSection(isDark),
+                _buildTrendingSection(isDark, context),
 
                 const SizedBox(height: 32),
 
                 // New Arrivals Section
-                _buildNewArrivalsSection(isDark),
+                _buildNewArrivalsSection(isDark, context),
 
                 const SizedBox(height: 32),
 
-                // Join Club Section
-                _buildJoinClubSection(isDark),
+                // Promo Banner (different style)
+                const PromoBanner(),
 
                 const SizedBox(height: 24),
               ],
@@ -115,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategories(bool isDark) {
+  Widget _buildCategories(bool isDark, BuildContext context) {
     return SizedBox(
       height: 40,
       child: ListView.builder(
@@ -172,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTrendingSection(bool isDark) {
+  Widget _buildTrendingSection(bool isDark, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -238,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller.trendingProducts[index],
                   isHorizontal: true,
                   isDark: isDark,
+                  context: context,
                 );
               },
             ),
@@ -247,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNewArrivalsSection(bool isDark) {
+  Widget _buildNewArrivalsSection(bool isDark, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -287,116 +294,11 @@ class _HomeScreenState extends State<HomeScreen> {
               return controller.buildProductCard(
                 controller.newArrivals[index],
                 isDark: isDark,
+                context: context,
               );
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildJoinClubSection(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.06)
-              : AppColors.secondary,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
-            width: 0.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              'Join the FITRA Club',
-              style: TextStyle(
-                fontFamily: AppFonts.headline,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppColors.neutral,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Sign up for early access to drops and exclusive curated styling guides.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : AppColors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05),
-                  width: 0.5,
-                ),
-              ),
-              child: TextField(
-                controller: controller.emailController,
-                style: TextStyle(
-                  color: isDark ? Colors.white : AppColors.neutral,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Email address',
-                  hintStyle: TextStyle(
-                    fontFamily: AppFonts.body,
-                    fontSize: 14,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.4)
-                        : AppColors.textSecondary,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: controller.subscribeEmail,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : AppColors.neutral,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                child: Text(
-                  'Join Now',
-                  style: TextStyle(
-                    fontFamily: AppFonts.label,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

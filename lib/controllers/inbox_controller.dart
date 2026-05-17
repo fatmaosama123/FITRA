@@ -1,4 +1,5 @@
 // lib/controllers/inbox_controller.dart
+
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 

@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/profile_controller.dart';
-import '../../controllers/inbox_controller.dart'; // ✅ جديد
+import '../../controllers/inbox_controller.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/fonts.dart';
+import '../../routes/app_routes.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -31,14 +32,15 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildProfileHeader(controller, isDark),
+                const SizedBox(height: 16),
+                _buildProfileHeader(controller, isDark, context),
                 const SizedBox(height: 32),
 
-                // Account Section
                 _buildSectionTitle('Account', isDark),
                 const SizedBox(height: 12),
-                _buildMenuCard(
-                  children: [
+                _buildCardContainer(
+                  isDark: isDark,
+                  itemsList: [
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Personal Information',
@@ -63,16 +65,15 @@ class ProfileScreen extends StatelessWidget {
                       onTap: () {},
                     ),
                   ],
-                  isDark: isDark,
                 ),
 
                 const SizedBox(height: 24),
 
-                // Orders Section
                 _buildSectionTitle('Orders', isDark),
                 const SizedBox(height: 12),
-                _buildMenuCard(
-                  children: [
+                _buildCardContainer(
+                  isDark: isDark,
+                  itemsList: [
                     _buildMenuItem(
                       icon: Icons.shopping_bag_outlined,
                       title: 'Order History',
@@ -88,17 +89,15 @@ class ProfileScreen extends StatelessWidget {
                       onTap: () {},
                     ),
                   ],
-                  isDark: isDark,
                 ),
 
                 const SizedBox(height: 24),
 
-                // Settings Section
                 _buildSectionTitle('Settings', isDark),
                 const SizedBox(height: 12),
-                _buildMenuCard(
-                  children: [
-                    // ✅ Notifications مع InboxController
+                _buildCardContainer(
+                  isDark: isDark,
+                  itemsList: [
                     Consumer<InboxController>(
                       builder: (context, inboxController, child) {
                         return _buildMenuItem(
@@ -110,7 +109,6 @@ class ProfileScreen extends StatelessWidget {
                           isDark: isDark,
                           onTap: () =>
                               Navigator.pushNamed(context, '/notifications'),
-                          // ✅ دوت أحمر لو فيه unread
                           trailing: inboxController.hasUnread
                               ? Container(
                                   width: 24,
@@ -153,10 +151,14 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Dark Mode',
                       subtitle: user.isDarkMode ? 'On' : 'Off',
                       isDark: isDark,
-                      onTap: () {},
+                      onTap: () {
+                        controller.toggleDarkMode(context, !user.isDarkMode);
+                      },
                       trailing: Switch(
                         value: user.isDarkMode,
-                        onChanged: (value) => controller.toggleDarkMode(value),
+                        onChanged: (value) {
+                          controller.toggleDarkMode(context, value);
+                        },
                         activeColor: AppColors.primary,
                       ),
                     ),
@@ -169,16 +171,15 @@ class ProfileScreen extends StatelessWidget {
                           controller.showCurrencySheet(context, isDark),
                     ),
                   ],
-                  isDark: isDark,
                 ),
 
                 const SizedBox(height: 24),
 
-                // Support Section
                 _buildSectionTitle('Support', isDark),
                 const SizedBox(height: 12),
-                _buildMenuCard(
-                  children: [
+                _buildCardContainer(
+                  isDark: isDark,
+                  itemsList: [
                     _buildMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help Center',
@@ -201,7 +202,6 @@ class ProfileScreen extends StatelessWidget {
                       onTap: () {},
                     ),
                   ],
-                  isDark: isDark,
                 ),
 
                 const SizedBox(height: 32),
@@ -214,8 +214,6 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  // ==================== WIDGETS ====================
 
   Widget _buildLoginPrompt(
     BuildContext context,
@@ -322,7 +320,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(ProfileController controller, bool isDark) {
+  Widget _buildProfileHeader(
+    ProfileController controller,
+    bool isDark,
+    BuildContext context,
+  ) {
     final user = controller.user;
     final initials = controller.userInitials;
 
@@ -417,7 +419,9 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              AppRoutes.goToEditProfile(context);
+            },
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -471,9 +475,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard({
-    required List<Widget> children,
+  Widget _buildCardContainer({
     required bool isDark,
+    required List<Widget> itemsList,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -487,7 +491,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(children: children),
+      child: Column(children: itemsList),
     );
   }
 

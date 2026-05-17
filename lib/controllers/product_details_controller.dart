@@ -50,11 +50,21 @@ class ProductDetailsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ جديد: getters للـ size و color المختارين
+  void incrementQuantity() {
+    quantity++;
+    notifyListeners();
+  }
+
+  void decrementQuantity() {
+    if (quantity > 1) {
+      quantity--;
+      notifyListeners();
+    }
+  }
+
   String get selectedSize => sizes[selectedSizeIndex];
   String get selectedColorName => colors[selectedColorIndex]['name'];
 
-  // ✅ جديد: method للـ Add to Cart
   Map<String, dynamic> getCartData() {
     return {
       'product': product,

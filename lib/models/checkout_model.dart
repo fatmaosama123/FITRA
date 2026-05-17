@@ -4,25 +4,14 @@ class PaymentMethod {
   final String id;
   final String name;
   final String icon;
-  final bool isDefault;
 
-  PaymentMethod({
-    required this.id,
-    required this.name,
-    required this.icon,
-    this.isDefault = false,
-  });
+  PaymentMethod({required this.id, required this.name, required this.icon});
 
   static List<PaymentMethod> getMethods() {
     return [
-      PaymentMethod(
-        id: 'cash',
-        name: 'Cash on Delivery',
-        icon: '💵',
-        isDefault: true,
-      ),
-      PaymentMethod(id: 'visa', name: 'Visa / Mastercard', icon: '💳'),
-      PaymentMethod(id: 'apple_pay', name: 'Apple Pay', icon: '🍎'),
+      PaymentMethod(id: 'cash', name: 'Cash on Delivery', icon: '💵'),
+      PaymentMethod(id: 'card', name: 'Credit Card', icon: '💳'),
+      PaymentMethod(id: 'paypal', name: 'PayPal', icon: '🅿️'),
     ];
   }
 }
@@ -48,8 +37,8 @@ class ShippingAddress {
     return [
       ShippingAddress(
         id: '1',
-        name: 'Sarah Johnson',
-        address: '123 Fashion Avenue, Apt 4B',
+        name: 'John Doe',
+        address: '123 Main Street, Apt 4B',
         city: 'New York, NY 10001',
         phone: '+1 (555) 123-4567',
         isDefault: true,

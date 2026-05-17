@@ -1,12 +1,13 @@
 // lib/controllers/profile_controller.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../core/constants/colors.dart';
 import '../core/constants/fonts.dart';
+import 'theme_controller.dart';
 
 class ProfileController extends ChangeNotifier {
-  // Start with empty user (not logged in)
   UserModel _user = UserModel.empty();
   bool _isLoading = false;
   int _currentNavIndex = 4;
@@ -16,7 +17,6 @@ class ProfileController extends ChangeNotifier {
   bool get isLoggedIn => _user.isLoggedIn;
   int get currentNavIndex => _currentNavIndex;
 
-  // Languages
   final List<String> languages = [
     'English (US)',
     'العربية',
@@ -25,7 +25,6 @@ class ProfileController extends ChangeNotifier {
     'Deutsch',
   ];
 
-  // Currencies
   final List<Map<String, String>> currencies = [
     {'code': 'USD (\$)', 'name': 'United States Dollar'},
     {'code': 'EUR (€)', 'name': 'Euro'},
@@ -34,7 +33,6 @@ class ProfileController extends ChangeNotifier {
     {'code': 'SAR (﷼)', 'name': 'Saudi Riyal'},
   ];
 
-  // Computed: User initials for avatar fallback
   String get userInitials {
     if (_user.name.isEmpty) return '';
     final nameParts = _user.name.split(' ');
@@ -43,8 +41,6 @@ class ProfileController extends ChangeNotifier {
     }
     return _user.name[0].toUpperCase();
   }
-
-  // ==================== NAVIGATION ====================
 
   void onNavTap(BuildContext context, int index) {
     _currentNavIndex = index;
@@ -78,13 +74,11 @@ class ProfileController extends ChangeNotifier {
   void goToSignup(BuildContext context) =>
       Navigator.pushNamed(context, '/signup');
 
-  // ==================== BOTTOM SHEETS & DIALOGS ====================
-
   void showLanguageSheet(BuildContext context, bool isDark) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true, // ✅ عشان يبقى scrollable
+      isScrollControlled: true,
       builder: (context) => _buildBottomSheetWrapper(
         isDark: isDark,
         title: 'Select Language',
@@ -132,7 +126,7 @@ class ProfileController extends ChangeNotifier {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true, // ✅ عشان يبقى scrollable
+      isScrollControlled: true,
       builder: (context) => _buildBottomSheetWrapper(
         isDark: isDark,
         title: 'Select Currency',
@@ -260,18 +254,15 @@ class ProfileController extends ChangeNotifier {
     );
   }
 
-  // ==================== PRIVATE UI HELPERS ====================
-
   Widget _buildBottomSheetWrapper({
     required bool isDark,
     required String title,
     required Widget child,
   }) {
     return DraggableScrollableSheet(
-      // ✅ عشان يبقى draggable وscrollable
-      initialChildSize: 0.6, // ✅ يبدأ بـ 60% من الشاشة
-      minChildSize: 0.3, // ✅ أقل حاجة 30%
-      maxChildSize: 0.9, // ✅ أقصى حاجة 90%
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
       expand: false,
       builder: (context, scrollController) {
         return Container(
@@ -309,7 +300,6 @@ class ProfileController extends ChangeNotifier {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // ✅ Expanded + ListView عشان يscroll
                 Expanded(
                   child: ListView(
                     controller: scrollController,
@@ -387,8 +377,6 @@ class ProfileController extends ChangeNotifier {
       ),
     );
   }
-
-  // ==================== DATA METHODS ====================
 
   void loadUser({
     required String id,
@@ -475,9 +463,12 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleDarkMode(bool value) {
+  void toggleDarkMode(BuildContext context, bool value) {
     _user = _user.copyWith(isDarkMode: value);
     notifyListeners();
+
+    final themeController = context.read<ThemeController>();
+    themeController.toggleTheme(value);
   }
 
   void updateProfile({

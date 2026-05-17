@@ -2,15 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../controllers/cart_controller.dart';
 import '../../controllers/product_details_controller.dart';
+import '../../controllers/cart_controller.dart';
+import '../../models/cart_item.dart';
+import '../../models/product_model.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/fonts.dart';
-import '../../models/product_model.dart';
-import '../../models/cart_item.dart'; // ✅ جديد
-import '../../routes/app_routes.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../widgets/bottom_nav_bar.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({super.key});
@@ -21,42 +19,18 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final controller = ProductDetailsController();
-  int _currentNavIndex = 1;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final product = args is ProductModel ? args : null;
+    final product = ModalRoute.of(context)?.settings.arguments as ProductModel?;
     controller.init(product);
   }
 
-  void _onNavTap(int index) {
-    setState(() {
-      _currentNavIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-        break;
-      case 1:
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/category-details',
-          (route) => false,
-        );
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/try-on');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/cart');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   void _addToCart() {
@@ -66,293 +40,332 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final cartController = context.read<CartController>();
 
     final cartItem = CartItem(
-      // ✅ CartItem
       id: product.id,
       name: product.name,
       imageUrl: product.imageUrl,
+      price: product.price,
       size: controller.selectedSize,
       color: controller.selectedColorName,
-      price: product.price,
-      quantity: 1,
+      quantity: controller.quantity,
     );
 
     cartController.addItem(cartItem);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${product.name} added to cart'),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'View Cart',
-          onPressed: () => AppRoutes.goToCart(context),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.check, color: AppColors.primary, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Added to cart successfully!',
+                style: TextStyle(
+                  fontFamily: AppFonts.label,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
         ),
+        backgroundColor: Colors.white,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Colors.black.withValues(alpha: 0.05),
+            width: 1,
+          ),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+        elevation: 8,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final product = controller.product;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-
-        final name = product?.name ?? 'Sculptural Ribbed Cardigan';
-        final subtitle = product?.subtitle ?? 'ESSENTIALS COLLECTION';
-        final price = product?.price ?? 185.00;
-        final imageUrl =
-            product?.imageUrl ?? 'assets/images/products/sweater.png';
-
         return Scaffold(
-          backgroundColor: isDark ? AppColors.backgroundDark : AppColors.white,
+          backgroundColor: bgColor,
 
           appBar: CustomAppBar(
-            title: 'Product Details',
+            title: controller.product?.name ?? 'Product Details',
             showMenu: false,
-            // ✅ تغيير: showCart → showNotification
-          ),
-
-          bottomNavigationBar: CustomBottomNavBar(
-            currentIndex: _currentNavIndex,
-            onTap: _onNavTap,
-          ),
-
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Container(
-                  height: 400,
-                  color: isDark ? AppColors.neutral : const Color(0xFFE8E8E8),
-                  child: _buildProductImage(imageUrl),
-                ),
+            showNotification: true,
+            notificationCount: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: isDark ? AppColors.white : AppColors.neutral,
               ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subtitle.toUpperCase(),
-                              style: TextStyle(
-                                fontFamily: AppFonts.label,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
-                                letterSpacing: 1.2,
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+
+                if (controller.product != null)
+                  Hero(
+                    tag: 'product_${controller.product!.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Image.network(
+                          controller.product!.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                size: 50,
                               ),
-                            ),
-                          ),
-                          Text(
-                            '\$${price.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontFamily: AppFonts.headline,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontFamily: AppFonts.headline,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.white : AppColors.neutral,
-                          height: 1.1,
+                            );
+                          },
                         ),
                       ),
+                    ),
+                  ),
 
-                      const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                      Text(
-                        'A masterpiece of tactile minimalism. This cardigan features an architectural silhouette crafted from ethically sourced ultra-fine Merino wool. Designed to drape effortlessly, bridging the gap between structure and softness.',
-                        style: TextStyle(
-                          fontFamily: AppFonts.body,
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      Text(
-                        'SELECT COLOR',
-                        style: TextStyle(
-                          fontFamily: AppFonts.label,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          letterSpacing: 1,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: List.generate(
-                          controller.colors.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: controller.buildColorCircle(index, context),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      Text(
-                        'SELECT SIZE',
-                        style: TextStyle(
-                          fontFamily: AppFonts.label,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          letterSpacing: 1,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: List.generate(
-                          controller.sizes.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: controller.buildSizeButton(index),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      controller.buildExpandableCard(
-                        icon: Icons.eco_outlined,
-                        title: 'Material & Care',
-                        content: [
-                          '• 100% Responsibly sourced Merino wool.',
-                          '• Hand wash cold only. Dry flat to maintain silhouette.',
-                          '• Naturally breathable and temperature regulating.',
-                        ],
-                        isExpanded: controller.isMaterialExpanded,
-                        onToggle: controller.toggleMaterial,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      controller.buildExpandableCard(
-                        icon: Icons.local_shipping_outlined,
-                        title: 'Shipping Info',
-                        content: [
-                          '• Complimentary carbon-neutral standard shipping.',
-                          '• Ships within 48 hours from our Lisbon studio.',
-                          '• 14-day premium return policy.',
-                        ],
-                        isExpanded: controller.isShippingExpanded,
-                        onToggle: controller.toggleShipping,
-                      ),
-
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _addToCart,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.shopping_bag_outlined, size: 20),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Add to Cart - \$${price.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontFamily: AppFonts.label,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
+                Text(
+                  controller.product?.name ?? '',
+                  style: TextStyle(
+                    fontFamily: AppFonts.headline,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppColors.neutral,
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 8),
+
+                Text(
+                  '\$${controller.product?.price.toStringAsFixed(2) ?? '0.00'}',
+                  style: TextStyle(
+                    fontFamily: AppFonts.label,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                Text(
+                  'Select Color',
+                  style: TextStyle(
+                    fontFamily: AppFonts.headline,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.neutral,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: List.generate(
+                    controller.colors.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: controller.buildColorCircle(index, context),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                Text(
+                  'Select Size',
+                  style: TextStyle(
+                    fontFamily: AppFonts.headline,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.neutral,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: List.generate(
+                    controller.sizes.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: controller.buildSizeButton(index),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                controller.buildExpandableCard(
+                  icon: Icons.eco_outlined,
+                  title: 'Material & Care',
+                  content: const [
+                    '100% Organic Cotton',
+                    'Machine wash cold',
+                    'Tumble dry low',
+                    'Made in Portugal',
+                  ],
+                  isExpanded: controller.isMaterialExpanded,
+                  onToggle: controller.toggleMaterial,
+                ),
+
+                const SizedBox(height: 12),
+
+                controller.buildExpandableCard(
+                  icon: Icons.local_shipping_outlined,
+                  title: 'Shipping & Returns',
+                  content: const [
+                    'Free shipping on orders over \$150',
+                    'Standard delivery: 3-5 business days',
+                    'Express delivery: 1-2 business days',
+                    'Free returns within 30 days',
+                  ],
+                  isExpanded: controller.isShippingExpanded,
+                  onToggle: controller.toggleShipping,
+                ),
+
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Text(
+                      'Quantity',
+                      style: TextStyle(
+                        fontFamily: AppFonts.headline,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppColors.neutral,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.remove,
+                              size: 18,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            onPressed: controller.decrementQuantity,
+                          ),
+                          Text(
+                            '${controller.quantity}',
+                            style: TextStyle(
+                              fontFamily: AppFonts.label,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.white
+                                  : AppColors.neutral,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.add,
+                              size: 18,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            onPressed: controller.incrementQuantity,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                GestureDetector(
+                  onTap: _addToCart,
+                  child: Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.8),
+                          AppColors.primary,
+                          AppColors.primary.withValues(alpha: 0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'ADD TO CART',
+                          style: TextStyle(
+                            fontFamily: AppFonts.label,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         );
       },
     );
-  }
-
-  Widget _buildProductImage(String imageUrl) {
-    if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              color: AppColors.primary.withValues(alpha: 0.5),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: AppColors.secondary,
-            child: Center(
-              child: Icon(
-                Icons.image_not_supported,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-                size: 40,
-              ),
-            ),
-          );
-        },
-      );
-    } else {
-      return Image.asset(
-        imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: AppColors.secondary,
-            child: Center(
-              child: Icon(
-                Icons.image_not_supported,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-                size: 40,
-              ),
-            ),
-          );
-        },
-      );
-    }
   }
 }

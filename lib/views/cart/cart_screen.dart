@@ -20,13 +20,11 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // ✅ نفس لون الباك جراوند بتاع الـ Theme (زي الهوم)
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Consumer<CartController>(
       builder: (context, controller, child) {
         return Scaffold(
-          // ✅ شيلت backgroundColor عشان ياخد من الـ Theme
           backgroundColor: bgColor,
           body: controller.items.isEmpty
               ? _buildEmptyState(isDark)
@@ -35,7 +33,8 @@ class _CartScreenState extends State<CartScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
+                      const SizedBox(height: 16),
+
                       Text(
                         'Your Cart',
                         style: TextStyle(
@@ -48,7 +47,6 @@ class _CartScreenState extends State<CartScreen> {
 
                       const SizedBox(height: 4),
 
-                      // Subtitle
                       Text(
                         '${controller.itemCount} items curated for you',
                         style: TextStyle(
@@ -60,7 +58,6 @@ class _CartScreenState extends State<CartScreen> {
 
                       const SizedBox(height: 24),
 
-                      // Cart Items
                       ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -78,17 +75,14 @@ class _CartScreenState extends State<CartScreen> {
 
                       const SizedBox(height: 24),
 
-                      // Promo Code
                       _buildPromoCode(controller, isDark),
 
                       const SizedBox(height: 24),
 
-                      // Summary
                       _buildSummary(controller, isDark),
 
                       const SizedBox(height: 24),
 
-                      // Checkout Button
                       _buildCheckoutButton(controller),
 
                       const SizedBox(height: 16),
@@ -137,7 +131,6 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        // ✅ ألوان أكتر تناسق مع الـ Theme
         color: isDark
             ? Colors.white.withValues(alpha: 0.06)
             : Colors.black.withValues(alpha: 0.03),
@@ -152,7 +145,6 @@ class _CartScreenState extends State<CartScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.network(
@@ -176,7 +168,6 @@ class _CartScreenState extends State<CartScreen> {
 
           const SizedBox(width: 16),
 
-          // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +301,6 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        // ✅ نفس ستايل الـ search bar في الهوم
         color: isDark
             ? Colors.white.withValues(alpha: 0.06)
             : AppColors.secondary.withValues(alpha: 0.5),
@@ -363,7 +353,6 @@ class _CartScreenState extends State<CartScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        // ✅ نفس ألوان الـ cart items
         color: isDark
             ? Colors.white.withValues(alpha: 0.06)
             : Colors.black.withValues(alpha: 0.03),

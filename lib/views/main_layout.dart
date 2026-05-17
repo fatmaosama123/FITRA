@@ -13,14 +13,16 @@ import '../widgets/custom_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 class MainLayout extends StatefulWidget {
-  const MainLayout({super.key});
+  final int initialTab;
+
+  const MainLayout({super.key, this.initialTab = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -31,11 +33,30 @@ class _MainLayoutState extends State<MainLayout> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTab;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args.containsKey('tab')) {
+      final tab = args['tab'] as int;
+      if (tab != _currentIndex) {
+        setState(() {
+          _currentIndex = tab;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // ✅ Drawer الجديد
       drawer: Consumer<ProfileController>(
         builder: (context, profileController, child) {
           return CustomDrawer(
@@ -48,7 +69,7 @@ class _MainLayoutState extends State<MainLayout> {
             avatarUrl: profileController.isLoggedIn
                 ? profileController.user.avatarUrl
                 : null,
-            onSettingsTap: () => Navigator.pushNamed(context, '/profile'),
+            onSettingsTap: () => _onNavTap(4),
             onLogoutTap: () =>
                 profileController.showLogoutDialog(context, isDark),
           );
@@ -61,16 +82,18 @@ class _MainLayoutState extends State<MainLayout> {
         notificationCount: 0,
       ),
 
-      body: _screens[_currentIndex],
+      body: IndexedStack(index: _currentIndex, children: _screens),
 
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: _onNavTap,
       ),
     );
+  }
+
+  void _onNavTap(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
   }
 }

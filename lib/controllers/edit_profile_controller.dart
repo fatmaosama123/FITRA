@@ -59,14 +59,14 @@ class EditProfileController extends ChangeNotifier {
     // TODO: Replace with actual API call to get current user data
     _profile = ProfileModel(
       id: 'user_123',
-      name: 'Sarah Ahmed',
-      email: 'sarah.ahmed@example.com',
+      name: 'Fatma Osama ',
+      email: 'Fatma.Osama@example.com',
       phone: '+20 123 456 7890',
       avatarUrl:
           'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
       bio: 'Flutter Developer',
       gender: 'Female',
-      birthDate: DateTime(1998, 5, 15),
+      birthDate: DateTime(2000, 5, 15),
     );
 
     nameController.text = _profile.name;

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../core/constants/colors.dart';
 import '../core/constants/fonts.dart';
-import '../routes/route_names.dart';
 import '../routes/app_routes.dart';
 
 class HomeController extends ChangeNotifier {
@@ -48,14 +47,15 @@ class HomeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Product Card Widget (from Controller)
+  // Product Card Widget (from Controller) — ✅ أضفنا BuildContext parameter
   Widget buildProductCard(
     ProductModel product, {
     bool isHorizontal = false,
     required bool isDark,
+    required BuildContext context, // ✅ جديد
   }) {
     return GestureDetector(
-      onTap: () => AppRoutes.goToProductDetails,
+      onTap: () => AppRoutes.goToProductDetails(context, product), // ✅ صح
       child: Container(
         width: isHorizontal ? 160 : null,
         margin: isHorizontal ? const EdgeInsets.only(right: 16) : null,
@@ -140,43 +140,68 @@ class HomeController extends ChangeNotifier {
 
   // دالة منفصلة للصورة مع error handling
   Widget _buildProductImage(String imageUrl, bool isDark) {
-    return Image.asset(
-      imageUrl,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.06)
-              : AppColors.secondary,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.image_outlined,
-                  size: 40,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : AppColors.textSecondary.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'No Image',
-                  style: TextStyle(
-                    fontFamily: AppFonts.label,
-                    fontSize: 10,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.5)
-                        : AppColors.textSecondary.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildErrorPlaceholder(isDark);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : AppColors.secondary,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+      );
+    } else {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildErrorPlaceholder(isDark);
+        },
+      );
+    }
+  }
+
+  Widget _buildErrorPlaceholder(bool isDark) {
+    return Container(
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.06)
+          : AppColors.secondary,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_outlined,
+              size: 40,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : AppColors.textSecondary.withValues(alpha: 0.5),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 8),
+            Text(
+              'No Image',
+              style: TextStyle(
+                fontFamily: AppFonts.label,
+                fontSize: 10,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : AppColors.textSecondary.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

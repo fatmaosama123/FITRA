@@ -33,9 +33,11 @@ class RouteNames {
 
   // Profile
   static const String profile = '/profile';
+  static const String editProfile = '/edit-profile'; // ✅ جديد
 
   // Try-On
   static const String tryOn = '/try-on';
+
   // Notifications
   static const String notifications = '/notifications';
 }
