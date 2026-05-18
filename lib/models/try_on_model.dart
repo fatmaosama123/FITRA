@@ -1,13 +1,21 @@
 // lib/models/try_on_model.dart
 
+// Try-on product data model
 class TryOnProduct {
+  // Product unique id
   final String id;
+  // Product name
   final String name;
+  // Product subtitle
   final String subtitle;
+  // Product price
   final double price;
-  final String imageUrl; // رابط من Unsplash
+  // Product image URL from Unsplash
+  final String imageUrl;
+  // Available colors list
   final List<String> colors;
 
+  // Constructor
   TryOnProduct({
     required this.id,
     required this.name,
@@ -17,6 +25,7 @@ class TryOnProduct {
     required this.colors,
   });
 
+  // Get recommended products for try-on
   static List<TryOnProduct> getRecommended() {
     return [
       TryOnProduct(

@@ -1,15 +1,25 @@
 // lib/models/profile_model.dart
 
+// Profile data model
 class ProfileModel {
+  // User unique id
   final String id;
+  // User name
   String name;
+  // User email
   String email;
+  // User phone number
   String phone;
+  // Avatar image URL
   String? avatarUrl;
+  // User bio text
   String bio;
+  // User gender
   String gender;
+  // User birth date
   DateTime? birthDate;
 
+  // Constructor
   ProfileModel({
     required this.id,
     required this.name,
@@ -21,10 +31,12 @@ class ProfileModel {
     this.birthDate,
   });
 
+  // Create empty profile instance
   factory ProfileModel.empty() {
     return ProfileModel(id: '', name: '', email: '');
   }
 
+  // Copy profile with optional field updates
   ProfileModel copyWith({
     String? name,
     String? email,

@@ -7,15 +7,22 @@ import '../core/constants/colors.dart';
 import '../core/constants/fonts.dart';
 import 'theme_controller.dart';
 
+// Manages profile state, settings, and all UI builders
 class ProfileController extends ChangeNotifier {
+
+  // ─── User State ───
+
   UserModel _user = UserModel.empty();
   bool _isLoading = false;
   int _currentNavIndex = 4;
 
+  // Getters
   UserModel get user => _user;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _user.isLoggedIn;
   int get currentNavIndex => _currentNavIndex;
+
+  // ─── Settings Data ───
 
   final List<String> languages = [
     'English (US)',
@@ -33,6 +40,7 @@ class ProfileController extends ChangeNotifier {
     {'code': 'SAR (﷼)', 'name': 'Saudi Riyal'},
   ];
 
+  // User initials from name
   String get userInitials {
     if (_user.name.isEmpty) return '';
     final nameParts = _user.name.split(' ');
@@ -41,6 +49,8 @@ class ProfileController extends ChangeNotifier {
     }
     return _user.name[0].toUpperCase();
   }
+
+  // ─── Navigation ───
 
   void onNavTap(BuildContext context, int index) {
     _currentNavIndex = index;
@@ -69,10 +79,321 @@ class ProfileController extends ChangeNotifier {
   }
 
   void goBack(BuildContext context) => Navigator.pop(context);
-  void goToLogin(BuildContext context) =>
-      Navigator.pushNamed(context, '/login');
-  void goToSignup(BuildContext context) =>
-      Navigator.pushNamed(context, '/signup');
+  void goToLogin(BuildContext context) => Navigator.pushNamed(context, '/login');
+  void goToSignup(BuildContext context) => Navigator.pushNamed(context, '/signup');
+  void goToEditProfile(BuildContext context) => Navigator.pushNamed(context, '/edit-profile');
+
+  // ─── UI BUILDERS ───
+
+  // Build login prompt for guests
+  Widget buildLoginPrompt(bool isDark, BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Guest icon
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.person_outline, size: 50, color: AppColors.primary),
+              ),
+              const SizedBox(height: 24),
+              // Title
+              _text('Welcome to FITRA', AppFonts.headline, 24,
+                  isDark ? AppColors.white : AppColors.neutral,
+                  bold: true),
+              const SizedBox(height: 8),
+              // Description
+              _text(
+                'Sign in to access your profile, orders, and saved preferences.',
+                AppFonts.body,
+                14,
+                AppColors.textSecondary,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              // Sign in button
+              _authButton(
+                label: 'Sign In',
+                isPrimary: true,
+                onTap: () => goToLogin(context),
+              ),
+              const SizedBox(height: 12),
+              // Sign up button
+              _authButton(
+                label: 'Create Account',
+                isPrimary: false,
+                isDark: isDark,
+                onTap: () => goToSignup(context),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  // Build profile header with avatar
+  Widget buildProfileHeader(bool isDark, BuildContext context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: _cardDecoration(isDark),
+        child: Row(
+          children: [
+            // Avatar
+            _buildAvatar(),
+            const SizedBox(width: 16),
+            // User info
+            Expanded(
+              child: _buildUserInfo(isDark),
+            ),
+            // Edit button
+            _editButton(isDark, () => goToEditProfile(context)),
+          ],
+        ),
+      );
+
+  // Build avatar image or initials
+  Widget _buildAvatar() => Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+              ? Image.network(
+                  user.avatarUrl!,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _initialsAvatar(),
+                  loadingBuilder: (_, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return _initialsAvatar();
+                  },
+                )
+              : _initialsAvatar(),
+        ),
+      );
+
+  // Build initials fallback avatar
+  Widget _initialsAvatar() => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+          ),
+        ),
+        child: Center(
+          child: _text(userInitials, AppFonts.headline, 24, AppColors.white,
+              bold: true),
+        ),
+      );
+
+  // Build user name, email, and badge
+  Widget _buildUserInfo(bool isDark) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _text(user.name, AppFonts.headline, 20,
+              isDark ? AppColors.white : AppColors.neutral,
+              bold: true),
+          const SizedBox(height: 4),
+          _text(user.email, AppFonts.body, 14, AppColors.textSecondary),
+          const SizedBox(height: 8),
+          // Member type badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: _text(user.memberType, AppFonts.label, 12, AppColors.primary,
+                bold: true),
+          ),
+        ],
+      );
+
+  // Build edit button
+  Widget _editButton(bool isDark, VoidCallback onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.neutralLight : const Color(0xFFF0F0F0),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.edit_outlined,
+            size: 20,
+            color: isDark ? AppColors.white : AppColors.neutral,
+          ),
+        ),
+      );
+
+  // Build account section
+  Widget buildAccountSection(bool isDark) => _buildSection(
+        title: 'Account',
+        isDark: isDark,
+        items: [
+          _menuItem(
+            icon: Icons.person_outline,
+            title: 'Personal Information',
+            subtitle: user.name,
+            isDark: isDark,
+            onTap: () {},
+          ),
+          _menuItem(
+            icon: Icons.location_on_outlined,
+            title: 'Addresses',
+            subtitle:
+                '${user.addresses.length} saved address${user.addresses.length != 1 ? 'es' : ''}',
+            isDark: isDark,
+            onTap: () {},
+          ),
+          _menuItem(
+            icon: Icons.payment_outlined,
+            title: 'Payment Methods',
+            subtitle:
+                '${user.paymentMethods.length} card${user.paymentMethods.length != 1 ? 's' : ''}',
+            isDark: isDark,
+            onTap: () {},
+          ),
+        ],
+      );
+
+  // Build orders section
+  Widget buildOrdersSection(bool isDark) => _buildSection(
+        title: 'Orders',
+        isDark: isDark,
+        items: [
+          _menuItem(
+            icon: Icons.shopping_bag_outlined,
+            title: 'Order History',
+            subtitle: 'View your past orders',
+            isDark: isDark,
+            onTap: () {},
+          ),
+          _menuItem(
+            icon: Icons.local_shipping_outlined,
+            title: 'Track Order',
+            subtitle: 'Track your current orders',
+            isDark: isDark,
+            onTap: () {},
+          ),
+        ],
+      );
+
+  // Build settings section
+  Widget buildSettingsSection(bool isDark, BuildContext context) => _buildSection(
+        title: 'Settings',
+        isDark: isDark,
+        items: [
+          // Notifications with badge
+          _menuItem(
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            subtitle: 'Manage notification preferences',
+            isDark: isDark,
+            onTap: () => Navigator.pushNamed(context, '/notifications'),
+          ),
+          // Language
+          _menuItem(
+            icon: Icons.language_outlined,
+            title: 'Language',
+            subtitle: user.language,
+            isDark: isDark,
+            onTap: () => showLanguageSheet(context, isDark),
+          ),
+          // Dark mode toggle
+          _menuItem(
+            icon: user.isDarkMode
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined,
+            title: 'Dark Mode',
+            subtitle: user.isDarkMode ? 'On' : 'Off',
+            isDark: isDark,
+            onTap: () => toggleDarkMode(context, !user.isDarkMode),
+            trailing: Switch(
+              value: user.isDarkMode,
+              onChanged: (value) => toggleDarkMode(context, value),
+              activeColor: AppColors.primary,
+            ),
+          ),
+          // Currency
+          _menuItem(
+            icon: Icons.currency_exchange_outlined,
+            title: 'Currency',
+            subtitle: user.currency,
+            isDark: isDark,
+            onTap: () => showCurrencySheet(context, isDark),
+          ),
+        ],
+      );
+
+  // Build support section
+  Widget buildSupportSection(bool isDark) => _buildSection(
+        title: 'Support',
+        isDark: isDark,
+        items: [
+          _menuItem(
+            icon: Icons.help_outline,
+            title: 'Help Center',
+            subtitle: 'FAQs and support articles',
+            isDark: isDark,
+            onTap: () {},
+          ),
+          _menuItem(
+            icon: Icons.chat_bubble_outline,
+            title: 'Contact Us',
+            subtitle: 'Get in touch with our team',
+            isDark: isDark,
+            onTap: () {},
+          ),
+          _menuItem(
+            icon: Icons.policy_outlined,
+            title: 'Privacy Policy',
+            subtitle: 'Read our privacy policy',
+            isDark: isDark,
+            onTap: () {},
+          ),
+        ],
+      );
+
+  // Build logout button
+  Widget buildLogoutButton(bool isDark, BuildContext context) => GestureDetector(
+        onTap: () => showLogoutDialog(context, isDark),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.neutral : AppColors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.logout, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                _text('Log Out', AppFonts.label, 16, AppColors.primary,
+                    bold: true),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  // ─── BOTTOM SHEETS & DIALOGS ───
 
   void showLanguageSheet(BuildContext context, bool isDark) {
     showModalBottomSheet(
@@ -86,7 +407,7 @@ class ProfileController extends ChangeNotifier {
           mainAxisSize: MainAxisSize.min,
           children: languages.map((lang) {
             final isSelected = _user.language == lang;
-            return _buildSelectableItem(
+            return _selectableItem(
               isDark: isDark,
               isSelected: isSelected,
               onTap: () {
@@ -96,23 +417,11 @@ class ProfileController extends ChangeNotifier {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    lang,
-                    style: TextStyle(
-                      fontFamily: AppFonts.body,
-                      fontSize: 16,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: isDark ? AppColors.white : AppColors.neutral,
-                    ),
-                  ),
+                  _text(lang, AppFonts.body, 16,
+                      isDark ? AppColors.white : AppColors.neutral,
+                      bold: isSelected),
                   if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
+                    Icon(Icons.check_circle, color: AppColors.primary, size: 24),
                 ],
               ),
             );
@@ -134,7 +443,7 @@ class ProfileController extends ChangeNotifier {
           mainAxisSize: MainAxisSize.min,
           children: currencies.map((curr) {
             final isSelected = _user.currency == curr['code'];
-            return _buildSelectableItem(
+            return _selectableItem(
               isDark: isDark,
               isSelected: isSelected,
               onTap: () {
@@ -147,34 +456,16 @@ class ProfileController extends ChangeNotifier {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        curr['code']!,
-                        style: TextStyle(
-                          fontFamily: AppFonts.headline,
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                          color: isDark ? AppColors.white : AppColors.neutral,
-                        ),
-                      ),
+                      _text(curr['code']!, AppFonts.headline, 16,
+                          isDark ? AppColors.white : AppColors.neutral,
+                          bold: isSelected),
                       const SizedBox(height: 2),
-                      Text(
-                        curr['name']!,
-                        style: TextStyle(
-                          fontFamily: AppFonts.body,
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
+                      _text(curr['name']!, AppFonts.body, 13,
+                          AppColors.textSecondary),
                     ],
                   ),
                   if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
+                    Icon(Icons.check_circle, color: AppColors.primary, size: 24),
                 ],
               ),
             );
@@ -193,6 +484,7 @@ class ProfileController extends ChangeNotifier {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Logout icon
             Container(
               width: 64,
               height: 64,
@@ -203,30 +495,25 @@ class ProfileController extends ChangeNotifier {
               child: Icon(Icons.logout, color: AppColors.primary, size: 32),
             ),
             const SizedBox(height: 16),
-            Text(
-              'Log Out?',
-              style: TextStyle(
-                fontFamily: AppFonts.headline,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.white : AppColors.neutral,
-              ),
-            ),
+            // Title
+            _text('Log Out?', AppFonts.headline, 24,
+                isDark ? AppColors.white : AppColors.neutral,
+                bold: true),
             const SizedBox(height: 8),
-            Text(
+            // Message
+            _text(
               'Are you sure you want to log out of your account?',
+              AppFonts.body,
+              14,
+              AppColors.textSecondary,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: AppFonts.body,
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
             ),
             const SizedBox(height: 24),
+            // Buttons
             Row(
               children: [
                 Expanded(
-                  child: _buildDialogButton(
+                  child: _dialogButton(
                     isDark: isDark,
                     isPrimary: false,
                     label: 'Cancel',
@@ -235,7 +522,7 @@ class ProfileController extends ChangeNotifier {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildDialogButton(
+                  child: _dialogButton(
                     isDark: isDark,
                     isPrimary: true,
                     label: 'Log Out',
@@ -254,18 +541,151 @@ class ProfileController extends ChangeNotifier {
     );
   }
 
+  // ─── PRIVATE HELPERS ───
+
+  // Reusable card decoration
+  BoxDecoration _cardDecoration(bool isDark) => BoxDecoration(
+        color: isDark ? AppColors.neutral : AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      );
+
+  // Build section with title and items
+  Widget _buildSection({
+    required String title,
+    required bool isDark,
+    required List<Widget> items,
+  }) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _text(title, AppFonts.headline, 18,
+              isDark ? AppColors.white : AppColors.neutral,
+              bold: true),
+          const SizedBox(height: 12),
+          Container(
+            decoration: _cardDecoration(isDark),
+            child: Column(children: items),
+          ),
+        ],
+      );
+
+  // Build menu item row
+  Widget _menuItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isDark,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isDark ? AppColors.neutralLight : const Color(0xFFF0F0F0),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.neutralLight
+                      : AppColors.backgroundLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: AppColors.primary),
+              ),
+              const SizedBox(width: 12),
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _text(title, AppFonts.headline, 15,
+                        isDark ? AppColors.white : AppColors.neutral,
+                        bold: true),
+                    const SizedBox(height: 2),
+                    _text(subtitle, AppFonts.body, 13, AppColors.textSecondary),
+                  ],
+                ),
+              ),
+              // Trailing or arrow
+              trailing ??
+                  const Icon(Icons.arrow_forward_ios,
+                      size: 16, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      );
+
+  // Auth button (login/signup)
+  Widget _authButton({
+    required String label,
+    required bool isPrimary,
+    bool? isDark,
+    required VoidCallback onTap,
+  }) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: isPrimary
+                ? const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  )
+                : null,
+            color: isPrimary
+                ? null
+                : (isDark == true ? AppColors.neutral : AppColors.white),
+            borderRadius: BorderRadius.circular(28),
+            border: isPrimary
+                ? null
+                : Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+          ),
+          child: Center(
+            child: _text(
+              label,
+              AppFonts.label,
+              16,
+              isPrimary ? AppColors.white : AppColors.primary,
+              bold: true,
+            ),
+          ),
+        ),
+      );
+
+  // Bottom sheet wrapper
   Widget _buildBottomSheetWrapper({
     required bool isDark,
     required String title,
     required Widget child,
-  }) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.3,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
+  }) =>
+      DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.neutral : AppColors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -275,6 +695,7 @@ class ProfileController extends ChangeNotifier {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Drag handle
                 Center(
                   child: Container(
                     width: 40,
@@ -287,19 +708,15 @@ class ProfileController extends ChangeNotifier {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // Title
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontFamily: AppFonts.headline,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.white : AppColors.neutral,
-                    ),
-                  ),
+                  child: _text(title, AppFonts.headline, 24,
+                      isDark ? AppColors.white : AppColors.neutral,
+                      bold: true),
                 ),
                 const SizedBox(height: 20),
+                // Content
                 Expanded(
                   child: ListView(
                     controller: scrollController,
@@ -310,73 +727,100 @@ class ProfileController extends ChangeNotifier {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
 
-  Widget _buildSelectableItem({
+  // Selectable item in bottom sheet
+  Widget _selectableItem({
     required bool isDark,
     required bool isSelected,
     required VoidCallback onTap,
     required Widget child,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : (isDark ? AppColors.neutralLight : const Color(0xFFF8F8F8)),
-          borderRadius: BorderRadius.circular(16),
-          border: isSelected
-              ? Border.all(color: AppColors.primary, width: 1)
-              : null,
+  }) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withValues(alpha: 0.1)
+                : (isDark ? AppColors.neutralLight : const Color(0xFFF8F8F8)),
+            borderRadius: BorderRadius.circular(16),
+            border: isSelected
+                ? Border.all(color: AppColors.primary, width: 1)
+                : null,
+          ),
+          child: child,
         ),
-        child: child,
-      ),
-    );
-  }
+      );
 
-  Widget _buildDialogButton({
+  // Dialog action button
+  Widget _dialogButton({
     required bool isDark,
     required bool isPrimary,
     required String label,
     required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: isPrimary
-              ? const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                )
-              : null,
-          color: isPrimary
-              ? null
-              : (isDark ? AppColors.neutralLight : const Color(0xFFF0F0F0)),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: AppFonts.label,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isPrimary
+  }) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: isPrimary
+                ? const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  )
+                : null,
+            color: isPrimary
+                ? null
+                : (isDark ? AppColors.neutralLight : const Color(0xFFF0F0F0)),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Center(
+            child: _text(
+              label,
+              AppFonts.label,
+              16,
+              isPrimary
                   ? AppColors.white
                   : (isDark ? AppColors.white : AppColors.neutral),
+              bold: true,
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+
+  // Quick text widget
+  Widget _text(
+    String text,
+    String font,
+    double size,
+    Color color, {
+    bool bold = false,
+    TextAlign? textAlign,
+  }) =>
+      Text(
+        text,
+        textAlign: textAlign,
+        style: _textStyle(font, size, color, bold: bold),
+      );
+
+  // Text style helper
+  TextStyle _textStyle(
+    String font,
+    double size,
+    Color color, {
+    bool bold = false,
+  }) =>
+      TextStyle(
+        fontFamily: font,
+        fontSize: size,
+        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+        color: color,
+      );
+
+  // ─── USER ACTIONS ───
 
   void loadUser({
     required String id,

@@ -1,12 +1,19 @@
 // lib/views/auth/login_screen.dart
 
+// Flutter material package
 import 'package:flutter/material.dart';
+// Provider for reading controllers
 import 'package:provider/provider.dart';
+// App colors
 import '../../core/constants/colors.dart';
+// Auth controller
 import '../../controllers/auth_controller.dart';
+// Profile controller
 import '../../controllers/profile_controller.dart';
+// Route names
 import '../../routes/route_names.dart';
 
+// Login screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,19 +22,27 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Email input controller
   final _emailController = TextEditingController();
+  // Password input controller
   final _passwordController = TextEditingController();
 
+  // Form validation key
   final _formKey = GlobalKey<FormState>();
+  // Auth controller instance
   final _authController = AuthController();
 
+  // Password visibility state
   bool _isPasswordVisible = false;
+  // Loading state flag
   bool _isLoading = false;
+  // Has password text flag
   bool _hasPasswordText = false;
 
   @override
   void initState() {
     super.initState();
+    // Listen to password changes
     _passwordController.addListener(
       () => setState(() {
         _hasPasswordText = _passwordController.text.isNotEmpty;
@@ -42,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Sign in handler
   void _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -55,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      // Load user profile after login
       final profileController = context.read<ProfileController>();
       profileController.loadUser(
         id: 'user_${DateTime.now().millisecondsSinceEpoch}',
@@ -64,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
       );
 
+      // Navigate to main layout
       Navigator.pushReplacementNamed(context, RouteNames.mainLayout);
     }
   }
@@ -84,16 +102,20 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
+                // App logo
                 _buildLogo(isDark),
                 const SizedBox(height: 16),
+                // Welcome title
                 Text('Welcome back', style: _welcomeStyle(isDark)),
                 const SizedBox(height: 4),
+                // Welcome subtitle
                 Text(
                   'Curated fashion awaits your return.',
                   textAlign: TextAlign.center,
                   style: _subHeaderStyle(isDark),
                 ),
                 const SizedBox(height: 24),
+                // Login form card
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 320),
@@ -102,8 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Email label
                       AuthController.buildLabel('EMAIL ADDRESS', isDark),
                       const SizedBox(height: 6),
+                      // Email input field
                       AuthController.buildTextField(
                         controller: _emailController,
                         hint: 'name@example.com',
@@ -112,10 +136,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
+                      // Password label and forgot link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           AuthController.buildLabel('PASSWORD', isDark),
+                          // Forgot password link
                           GestureDetector(
                             onTap: () => Navigator.pushNamed(
                               context,
@@ -134,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       const SizedBox(height: 6),
+                      // Password input field
                       AuthController.buildPasswordField(
                         controller: _passwordController,
                         isVisible: _isPasswordVisible,
@@ -144,6 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 20),
+                      // Sign in button
                       AuthController.buildGradientButton(
                         text: 'Sign In',
                         isLoading: _isLoading,
@@ -153,8 +181,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // OR divider
                 AuthController.buildOrDivider(isDark),
                 const SizedBox(height: 16),
+                // Social login buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -174,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // Sign up link
                 GestureDetector(
                   onTap: () => Navigator.pushReplacementNamed(
                     context,
@@ -211,6 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Build app logo with fallback text
   Widget _buildLogo(bool isDark) {
     final logoPath = isDark
         ? 'assets/images/logo/logo_dark.png'
@@ -222,6 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
         width: 120,
         height: 120,
         fit: BoxFit.contain,
+        // Fallback text if image fails
         errorBuilder: (context, error, stackTrace) {
           return Text(
             'FITRA',
@@ -238,6 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Welcome title style
   TextStyle _welcomeStyle(bool isDark) => TextStyle(
     fontFamily: 'PlusJakartaSans',
     fontSize: 28,
@@ -245,6 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
     color: isDark ? AppColors.white : AppColors.neutral,
   );
 
+  // Subtitle text style
   TextStyle _subHeaderStyle(bool isDark) => TextStyle(
     fontFamily: 'BeVietnamPro',
     fontSize: 12,
@@ -253,6 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
         : AppColors.textSecondary,
   );
 
+  // Card decoration style
   BoxDecoration _cardDecoration(bool isDark) => BoxDecoration(
     color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.white,
     borderRadius: BorderRadius.circular(20),

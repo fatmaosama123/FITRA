@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+// A carousel widget that shows ads with auto-play
 class AdBannerCarousel extends StatefulWidget {
   const AdBannerCarousel({super.key});
 
@@ -11,10 +12,14 @@ class AdBannerCarousel extends StatefulWidget {
 }
 
 class _AdBannerCarouselState extends State<AdBannerCarousel> {
+  // Controls the page swiping
   final PageController _pageController = PageController();
+  // Tracks which ad is showing now
   int _currentPage = 0;
+  // Timer for auto-play
   Timer? _timer;
 
+  // List of all ads to show
   final List<AdBannerModel> _ads = [
     AdBannerModel(
       imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80',
@@ -49,16 +54,20 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
   @override
   void initState() {
     super.initState();
+    // Start auto-play when widget loads
     _startAutoPlay();
   }
 
+  // Auto-play: move to next ad every 5 seconds
   void _startAutoPlay() {
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      // Go to next page, or back to first if at end
       if (_currentPage < _ads.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
       }
+      // Animate to the new page
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentPage,
@@ -71,6 +80,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
 
   @override
   void dispose() {
+    // Clean up: stop timer and dispose controller
     _timer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -78,16 +88,19 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if dark mode is on
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [
+        // Main card container
         Container(
           height: 180,
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
+              // Shadow under the card
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
                 blurRadius: 20,
@@ -99,9 +112,11 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
             borderRadius: BorderRadius.circular(24),
             child: Stack(
               children: [
+                // Swipeable pages
                 PageView.builder(
                   controller: _pageController,
                   onPageChanged: (index) {
+                    // Update current page when swiped
                     setState(() => _currentPage = index);
                   },
                   itemCount: _ads.length,
@@ -109,6 +124,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                     return _buildAdPage(_ads[index], isDark);
                   },
                 ),
+                // Dark gradient overlay for text readability
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -125,6 +141,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                     ),
                   ),
                 ),
+                // Ad text content (left side)
                 Positioned(
                   left: 24,
                   top: 32,
@@ -133,6 +150,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Ad title with animation
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         child: Text(
@@ -147,6 +165,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                         ),
                       ),
                       const SizedBox(height: 6),
+                      // Ad subtitle with animation
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         child: Text(
@@ -160,6 +179,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Call-to-action button with animation
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         child: Container(
@@ -186,6 +206,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                     ],
                   ),
                 ),
+                // Page indicator dots (bottom right)
                 Positioned(
                   bottom: 16,
                   right: 24,
@@ -194,6 +215,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.only(left: 6),
+                        // Active dot is wider
                         width: _currentPage == index ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
@@ -214,12 +236,14 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
     );
   }
 
+  // Builds one ad page with image
   Widget _buildAdPage(AdBannerModel ad, bool isDark) {
     return Image.network(
       ad.imageUrl,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
+      // Show loader while image loads
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Container(
@@ -231,6 +255,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
           ),
         );
       },
+      // Show fallback if image fails to load
       errorBuilder: (context, error, stackTrace) {
         return Container(
           color: ad.bgColor.withOpacity(0.3),
@@ -261,6 +286,7 @@ class _AdBannerCarouselState extends State<AdBannerCarousel> {
   }
 }
 
+// Data model for one ad
 class AdBannerModel {
   final String imageUrl;
   final String title;

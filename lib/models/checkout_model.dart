@@ -1,12 +1,18 @@
 // lib/models/checkout_model.dart
 
+// Payment method data model
 class PaymentMethod {
+  // Payment method id
   final String id;
+  // Payment method name
   final String name;
+  // Payment method icon emoji
   final String icon;
 
+  // Constructor
   PaymentMethod({required this.id, required this.name, required this.icon});
 
+  // Get available payment methods
   static List<PaymentMethod> getMethods() {
     return [
       PaymentMethod(id: 'cash', name: 'Cash on Delivery', icon: '💵'),
@@ -16,14 +22,22 @@ class PaymentMethod {
   }
 }
 
+// Shipping address data model
 class ShippingAddress {
+  // Address unique id
   final String id;
+  // Recipient name
   final String name;
+  // Street address
   final String address;
+  // City and zip code
   final String city;
+  // Contact phone
   final String phone;
+  // Is default address flag
   final bool isDefault;
 
+  // Constructor
   ShippingAddress({
     required this.id,
     required this.name,
@@ -33,6 +47,7 @@ class ShippingAddress {
     this.isDefault = false,
   });
 
+  // Get saved shipping addresses
   static List<ShippingAddress> getAddresses() {
     return [
       ShippingAddress(

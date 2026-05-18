@@ -1,4 +1,4 @@
-// lib/controllers/category_details_controller.dart
+// lib/controllers/collection_details_controller.dart
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -8,28 +8,27 @@ import '../core/constants/colors.dart';
 import '../core/constants/fonts.dart';
 import '../widgets/product_card.dart';
 
-class CategoryDetailsController extends ChangeNotifier {
+class CollectionDetailsController extends ChangeNotifier {
   String categoryName = '';
   String description = '';
   List<ProductModel> products = [];
-  CategoryModel? category;
+  bool isLoading = true;
 
-  // For image carousel
   int currentImageIndex = 0;
   Timer? _imageTimer;
   final PageController imagePageController = PageController();
 
   void init(String title) {
-    categoryName = 'Curated $title';
+    categoryName = title;
     description =
-        'Functional $title designed for the tactile curator. Minimal aesthetics, maximum durability.';
-    products = ProductModel.getByCategory(title);
-    // Find category model
-    category = CategoryModel.allCategories.firstWhere(
-      (c) => c.name == title,
-      orElse: () => CategoryModel.allCategories.first,
-    );
-    _startImageCarousel();
+        'Curated $title collection. Minimal aesthetics, maximum durability. Designed for the tactile curator.';
+    
+    Future.delayed(const Duration(milliseconds: 500), () {
+      products = ProductModel.getByCategory(title);
+      isLoading = false;
+      notifyListeners();
+    });
+
     notifyListeners();
   }
 
@@ -40,37 +39,13 @@ class CategoryDetailsController extends ChangeNotifier {
     super.dispose();
   }
 
-  // Auto-slide images every 4 seconds
-  void _startImageCarousel() {
-    if (category == null || category!.imageUrls.length <= 1) return;
-    _imageTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!imagePageController.hasClients) return;
-      final next = (currentImageIndex + 1) % category!.imageUrls.length;
-      imagePageController.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-      currentImageIndex = next;
-      notifyListeners();
-    });
-  }
-
-  void onImageChanged(int index) {
-    currentImageIndex = index;
-    notifyListeners();
-  }
-
   // ─── UI BUILDERS ───
 
-  // Build category header with image carousel
   Widget buildHeader(bool isDark) {
-    if (category == null) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 100),
-        // Title
+        const SizedBox(height: 16),
         _text(
           categoryName,
           AppFonts.headline,
@@ -79,28 +54,56 @@ class CategoryDetailsController extends ChangeNotifier {
           bold: true,
         ),
         const SizedBox(height: 8),
-        // Description
         Text(
           description,
           style: _textStyle(
             AppFonts.body,
             14,
-            isDark ? Colors.white.withValues(alpha: 0.6) : AppColors.textSecondary,
+            isDark ? Colors.white.withValues(alpha: 0.7) : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 20),
-        // Image carousel
         _buildImageCarousel(isDark),
         const SizedBox(height: 20),
-        // Filter & Sort buttons
         _buildFilterSortButtons(isDark),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  // Build image carousel with auto-slide
   Widget _buildImageCarousel(bool isDark) {
+    final category = CategoryModel.allCategories.firstWhere(
+      (c) => c.name.toLowerCase() == categoryName.toLowerCase(),
+      orElse: () => CategoryModel.allCategories.first,
+    );
+
+    if (category.imageUrls.length == 1) {
+      return _buildSingleImage(category.imageUrls[0], category, isDark);
+    }
+
+    return _buildMultiImageCarousel(category, isDark);
+  }
+
+  Widget _buildSingleImage(String url, CategoryModel category, bool isDark) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Image.network(
+        url,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          height: 200,
+          color: category.backgroundColor,
+          child: Icon(Icons.image_not_supported, color: category.textColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMultiImageCarousel(CategoryModel category, bool isDark) {
+    _startImageTimer(category);
+
     return Container(
       height: 220,
       decoration: BoxDecoration(
@@ -116,58 +119,50 @@ class CategoryDetailsController extends ChangeNotifier {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            // PageView for images
             PageView.builder(
               controller: imagePageController,
-              onPageChanged: onImageChanged,
-              itemCount: category!.imageUrls.length,
+              onPageChanged: (index) {
+                currentImageIndex = index;
+                notifyListeners();
+              },
+              itemCount: category.imageUrls.length,
               itemBuilder: (context, index) => Image.network(
-                category!.imageUrls[index],
+                category.imageUrls[index],
                 fit: BoxFit.cover,
-                width: double.infinity,
                 errorBuilder: (_, __, ___) => Container(
-                  color: category!.backgroundColor,
-                  child: Icon(Icons.image_not_supported, color: category!.textColor),
+                  color: category.backgroundColor,
+                  child: Icon(Icons.image_not_supported, color: category.textColor),
                 ),
               ),
             ),
-            // Gradient overlay
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.6),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.5],
-                  ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.5),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.6],
                 ),
               ),
             ),
-            // Category name on image
             Positioned(
               bottom: 16,
               left: 20,
               child: Text(
-                category!.subtitle,
-                style: _textStyle(
-                  AppFonts.headline,
-                  24,
-                  Colors.white,
-                  bold: true,
-                ),
+                categoryName,
+                style: _textStyle(AppFonts.headline, 22, Colors.white, bold: true),
               ),
             ),
-            // Page indicators
             Positioned(
-              bottom: 16,
-              right: 20,
+              top: 16,
+              right: 16,
               child: Row(
-                children: List.generate(category!.imageUrls.length, (index) {
+                children: List.generate(category.imageUrls.length, (index) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     margin: const EdgeInsets.only(left: 6),
@@ -189,7 +184,21 @@ class CategoryDetailsController extends ChangeNotifier {
     );
   }
 
-  // Build filter and sort buttons
+  void _startImageTimer(CategoryModel category) {
+    _imageTimer?.cancel();
+    if (category.imageUrls.length <= 1) return;
+    
+    _imageTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!imagePageController.hasClients) return;
+      final next = (currentImageIndex + 1) % category.imageUrls.length;
+      imagePageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   Widget _buildFilterSortButtons(bool isDark) {
     return Row(
       children: [
@@ -197,22 +206,26 @@ class CategoryDetailsController extends ChangeNotifier {
           icon: Icons.tune,
           label: 'Filter',
           isDark: isDark,
-          onTap: () {}, // TODO: Show filter bottom sheet
+          onTap: () {},
         ),
         const SizedBox(width: 12),
         _actionButton(
           icon: Icons.swap_vert,
           label: 'Sort: Newest',
           isDark: isDark,
-          onTap: () {}, // TODO: Show sort options
+          onTap: () {},
         ),
       ],
     );
   }
 
-  // Build products list
-  Widget buildProductsList(bool isDark) {
-    if (products.isEmpty) return _buildEmptyState(isDark);
+  Widget buildProducts(bool isDark) {
+    if (isLoading) {
+      return _buildLoadingState(isDark);
+    }
+    if (products.isEmpty) {
+      return _buildEmptyState(isDark);
+    }
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -225,13 +238,25 @@ class CategoryDetailsController extends ChangeNotifier {
     );
   }
 
-  // Build empty state
+  Widget _buildLoadingState(bool isDark) => Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            CircularProgressIndicator(color: AppColors.primary),
+            const SizedBox(height: 16),
+            _text('Loading collection...', AppFonts.body, 14,
+                isDark ? Colors.white70 : AppColors.textSecondary),
+          ],
+        ),
+      );
+
   Widget _buildEmptyState(bool isDark) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 40),
             Icon(
-              Icons.inventory_2_outlined,
+              Icons.collections_outlined,
               size: 64,
               color: isDark
                   ? Colors.white.withValues(alpha: 0.3)
@@ -239,7 +264,7 @@ class CategoryDetailsController extends ChangeNotifier {
             ),
             const SizedBox(height: 16),
             _text(
-              'No products yet',
+              'Collection coming soon',
               AppFonts.headline,
               18,
               isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.textSecondary,
@@ -248,35 +273,37 @@ class CategoryDetailsController extends ChangeNotifier {
         ),
       );
 
-  // Build explore more button
-  Widget buildExploreButton(bool isDark) => Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : AppColors.secondary,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(
+  // FIXED: Removed AppRoutes.goToShop, use callback instead
+  Widget buildExploreButton(bool isDark, VoidCallback onTap) => Center(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+            decoration: BoxDecoration(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.05),
-              width: 0.5,
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : AppColors.secondary,
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.05),
+                width: 0.5,
+              ),
             ),
-          ),
-          child: _text(
-            'EXPLORE MORE',
-            AppFonts.label,
-            12,
-            isDark ? Colors.white.withValues(alpha: 0.8) : AppColors.neutral,
-            bold: true,
+            child: _text(
+              'EXPLORE MORE',
+              AppFonts.label,
+              12,
+              isDark ? Colors.white.withValues(alpha: 0.8) : AppColors.neutral,
+              bold: true,
+            ),
           ),
         ),
       );
 
   // ─── PRIVATE HELPERS ───
 
-  // Action button (Filter/Sort)
   Widget _actionButton({
     required IconData icon,
     required String label,
@@ -289,12 +316,12 @@ class CategoryDetailsController extends ChangeNotifier {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
+                ? Colors.white.withValues(alpha: 0.1)
                 : AppColors.secondary,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? Colors.white.withValues(alpha: 0.15)
                   : Colors.black.withValues(alpha: 0.05),
               width: 0.5,
             ),
@@ -306,25 +333,18 @@ class CategoryDetailsController extends ChangeNotifier {
                 icon,
                 size: 16,
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.7)
+                    ? Colors.white.withValues(alpha: 0.8)
                     : AppColors.neutral,
               ),
               const SizedBox(width: 6),
-              _text(
-                label,
-                AppFonts.label,
-                13,
-                isDark
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : AppColors.neutral,
-                bold: true,
-              ),
+              _text(label, AppFonts.label, 13,
+                  isDark ? Colors.white.withValues(alpha: 0.9) : AppColors.neutral,
+                  bold: true),
             ],
           ),
         ),
       );
 
-  // Quick text widget
   Widget _text(String text, String font, double size, Color color,
           {bool bold = false}) =>
       Text(
@@ -332,7 +352,6 @@ class CategoryDetailsController extends ChangeNotifier {
         style: _textStyle(font, size, color, bold: bold),
       );
 
-  // Text style helper
   TextStyle _textStyle(String font, double size, Color color,
           {bool bold = false}) =>
       TextStyle(

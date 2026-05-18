@@ -1,13 +1,21 @@
 // lib/views/auth/signup_screen.dart
 
+// Flutter material package
 import 'package:flutter/material.dart';
+// Provider for accessing controllers
 import 'package:provider/provider.dart';
+// App colors
 import '../../core/constants/colors.dart';
+// App fonts
 import '../../core/constants/fonts.dart';
+// Auth controller
 import '../../controllers/auth_controller.dart';
+// Profile controller
 import '../../controllers/profile_controller.dart';
+// Route names
 import '../../routes/route_names.dart';
 
+// Sign up screen
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -16,17 +24,27 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // Name input controller
   final _nameController = TextEditingController();
+  // Email input controller
   final _emailController = TextEditingController();
+  // Password input controller
   final _passwordController = TextEditingController();
 
+  // Form validation key
   final _formKey = GlobalKey<FormState>();
+  // Auth controller instance
   final _authController = AuthController();
 
+  // Password visibility state
   bool _isPasswordVisible = false;
+  // Loading state flag
   bool _isLoading = false;
+  // Has password text flag
   bool _hasPasswordText = false;
+  // Is name valid flag
   bool _isNameValid = false;
+  // Password strength data
   Map<String, dynamic> _passwordStrength = {
     'strength': 0,
     'level': 'WEAK',
@@ -39,14 +57,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
+    // Listen to name changes
     _nameController.addListener(_checkName);
+    // Listen to password changes
     _passwordController.addListener(_checkPassword);
   }
 
+  // Validate name input
   void _checkName() => setState(
     () => _isNameValid = AuthController.isNameValid(_nameController.text),
   );
 
+  // Check password strength
   void _checkPassword() => setState(() {
     _hasPasswordText = _passwordController.text.isNotEmpty;
     _passwordStrength = AuthController.checkPasswordStrength(
@@ -62,6 +84,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  // Sign up handler
   void _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -78,6 +101,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      // Load user profile after signup
       final profileController = Provider.of<ProfileController>(
         context,
         listen: false,
@@ -90,6 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
       );
 
+      // Navigate to main layout
       Navigator.pushReplacementNamed(context, RouteNames.mainLayout);
     }
   }
@@ -110,14 +135,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
+                // App logo
                 _buildLogo(isDark),
                 const SizedBox(height: 16),
+                // Welcome subtitle
                 Text(
                   'Join our curated community of\nmovement and mindful style.',
                   textAlign: TextAlign.center,
                   style: _subHeaderStyle(isDark),
                 ),
                 const SizedBox(height: 24),
+                // Sign up form card
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 320),
@@ -126,13 +154,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Name label
                       AuthController.buildLabel('FULL NAME', isDark),
                       const SizedBox(height: 6),
+                      // Name input field
                       AuthController.buildTextField(
                         controller: _nameController,
                         hint: 'Fatma Osama',
                         validator: (v) =>
                             AuthController.validateRequired(v, 'Full name'),
+                        // Show check icon when name is valid
                         suffixIcon: _isNameValid
                             ? const Icon(
                                 Icons.check_circle,
@@ -143,8 +174,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
+                      // Email label
                       AuthController.buildLabel('EMAIL ADDRESS', isDark),
                       const SizedBox(height: 6),
+                      // Email input field
                       AuthController.buildTextField(
                         controller: _emailController,
                         hint: 'fatma.osama@email.com',
@@ -153,8 +186,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
+                      // Password label
                       AuthController.buildLabel('PASSWORD', isDark),
                       const SizedBox(height: 6),
+                      // Password input field
                       AuthController.buildPasswordField(
                         controller: _passwordController,
                         isVisible: _isPasswordVisible,
@@ -165,12 +200,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 10),
+                      // Password strength indicator
                       if (_hasPasswordText)
                         AuthController.buildStrengthIndicator(
                           _passwordStrength,
                           isDark,
                         ),
                       const SizedBox(height: 20),
+                      // Create account button
                       AuthController.buildGradientButton(
                         text: 'Create Account',
                         isLoading: _isLoading,
@@ -185,8 +222,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // OR divider
                 AuthController.buildOrDivider(isDark),
                 const SizedBox(height: 16),
+                // Social login buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -206,6 +245,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // Sign in link
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, RouteNames.login),
                   child: RichText(
@@ -240,6 +280,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  // Build app logo with fallback text
   Widget _buildLogo(bool isDark) {
     final logoPath = isDark
         ? 'assets/images/logo/logo_dark.png'
@@ -251,6 +292,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         width: 120,
         height: 120,
         fit: BoxFit.contain,
+        // Fallback text if image fails
         errorBuilder: (context, error, stackTrace) {
           return Text(
             'FITRA',
@@ -267,6 +309,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  // Subtitle text style
   TextStyle _subHeaderStyle(bool isDark) => TextStyle(
     fontFamily: 'BeVietnamPro',
     fontSize: 12,
@@ -276,6 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         : AppColors.textSecondary,
   );
 
+  // Card decoration style
   BoxDecoration _cardDecoration(bool isDark) => BoxDecoration(
     color: isDark
         ? Colors.white.withValues(alpha: 0.06)

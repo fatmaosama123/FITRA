@@ -21,38 +21,40 @@ class CartItem {
 
   double get totalPrice => price * quantity;
 
-  static List<CartItem> sampleItems() {
-    return [
+  // Create copy with changes (useful for state updates)
+  CartItem copyWith({int? quantity}) => CartItem(
+        id: id,
+        name: name,
+        imageUrl: imageUrl,
+        size: size,
+        color: color,
+        price: price,
+        quantity: quantity ?? this.quantity,
+      );
+
+  // Sample data for testing
+  static List<CartItem> get samples => [
+        _item('1', 'Sculptural Ribbed Cardigan', 'Ivory', 'M', 185),
+        _item('2', 'Linen Shirt', 'Beige', 'L', 95, qty: 2),
+        _item('3', 'Silk Dress', 'Black', 'S', 195),
+      ];
+
+  // Helper to create sample item quickly
+  static CartItem _item(String id, String name, String color, String size,
+          double price, {int qty = 1}) =>
       CartItem(
-        id: '1',
-        name: 'Sculptural Ribbed Cardigan',
-        imageUrl:
-            'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80',
-        size: 'M',
-        color: 'Ivory',
-        price: 185.00,
-        quantity: 1,
-      ),
-      CartItem(
-        id: '2',
-        name: 'Linen Shirt',
-        imageUrl:
-            'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80',
-        size: 'L',
-        color: 'Beige',
-        price: 95.00,
-        quantity: 2,
-      ),
-      CartItem(
-        id: '3',
-        name: 'Silk Dress',
-        imageUrl:
-            'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&q=80',
-        size: 'S',
-        color: 'Black',
-        price: 195.00,
-        quantity: 1,
-      ),
-    ];
-  }
+        id: id,
+        name: name,
+        imageUrl: 'https://images.unsplash.com/photo-${_imageIds[id]}?w=400&q=80',
+        size: size,
+        color: color,
+        price: price,
+        quantity: qty,
+      );
+
+  static const _imageIds = {
+    '1': '1576566588028-4147f3842f27',
+    '2': '1596755094514-f87e34085b2c',
+    '3': '1595777457583-95e059d581b8',
+  };
 }

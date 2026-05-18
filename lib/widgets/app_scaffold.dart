@@ -9,6 +9,7 @@ import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'bottom_nav_bar.dart';
 
+// Main scaffold widget that wraps all screens with app bar, drawer, and bottom nav
 class AppScaffold extends StatelessWidget {
   final Widget body;
   final String? title;
@@ -37,16 +38,21 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if dark mode is on
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      // Make body extend behind app bar
       extendBodyBehindAppBar: true,
+      // Make body extend behind bottom nav
       extendBody: true,
 
+      // Side drawer (hamburger menu) - only if showMenu is true
       drawer: showMenu
           ? Consumer<ProfileController>(
               builder: (context, profileController, child) {
                 return CustomDrawer(
+                  // Show user info if logged in, else null
                   userName: profileController.isLoggedIn
                       ? profileController.user.name
                       : null,
@@ -56,7 +62,9 @@ class AppScaffold extends StatelessWidget {
                   avatarUrl: profileController.isLoggedIn
                       ? profileController.user.avatarUrl
                       : null,
+                  // Go to settings tab (index 4)
                   onSettingsTap: () => _navigateToTab(context, 4),
+                  // Show logout confirmation dialog
                   onLogoutTap: () =>
                       profileController.showLogoutDialog(context, isDark),
                 );
@@ -64,6 +72,7 @@ class AppScaffold extends StatelessWidget {
             )
           : null,
 
+      // Custom app bar at the top
       appBar:
           CustomAppBar(
                 title: title,
@@ -75,8 +84,10 @@ class AppScaffold extends StatelessWidget {
               )
               as PreferredSizeWidget?,
 
+      // Main screen content
       body: body,
 
+      // Bottom navigation bar - only if showNavBar is true
       bottomNavigationBar: showNavBar
           ? CustomBottomNavBar(
               currentIndex: currentNavIndex,
@@ -84,28 +95,32 @@ class AppScaffold extends StatelessWidget {
             )
           : null,
 
+      // Floating action button (if any)
       floatingActionButton: floatingActionButton,
     );
   }
 
+  // Handle bottom nav tap
   void _onNavTap(BuildContext context, int index) {
-    // لو في نفس التاب، مفيش حاجة
+    // If same tab tapped, do nothing
     if (index == currentNavIndex) return;
 
     _navigateToTab(context, index);
   }
 
+  // Navigate to a specific tab
   void _navigateToTab(BuildContext context, int index) {
     switch (index) {
-      case 0: // HOME
+      case 0: // HOME tab
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/main',
+          // Remove all previous routes
           (route) => false,
           arguments: {'tab': 0},
         );
         break;
-      case 1: // SHOP
+      case 1: // SHOP tab
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/main',
@@ -113,7 +128,7 @@ class AppScaffold extends StatelessWidget {
           arguments: {'tab': 1},
         );
         break;
-      case 2: // TRY-ON
+      case 2: // TRY-ON tab
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/main',
@@ -121,7 +136,7 @@ class AppScaffold extends StatelessWidget {
           arguments: {'tab': 2},
         );
         break;
-      case 3: // CART
+      case 3: // CART tab
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/main',
@@ -129,7 +144,7 @@ class AppScaffold extends StatelessWidget {
           arguments: {'tab': 3},
         );
         break;
-      case 4: // PROFILE
+      case 4: // PROFILE tab
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/main',

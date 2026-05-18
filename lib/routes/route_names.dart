@@ -1,43 +1,71 @@
 // lib/routes/route_names.dart
-
+// App route paths constants
 class RouteNames {
-  // Splash & Onboarding
+  // ─── Splash & Onboarding ───
+
+  // Splash screen route
   static const String splash = '/';
+  // Onboarding screen route
   static const String onboarding = '/onboarding';
 
-  // Auth
+  // ─── Auth ───
+
+  // Login screen route
   static const String login = '/login';
+  // Signup screen route
   static const String signup = '/signup';
+  // Forgot password screen route
   static const String forgotPassword = '/forgot-password';
 
-  // Main Layout Screens (with BottomNav)
+  // ─── Main Layout ───
+
+  // Main layout with bottom nav route
   static const String mainLayout = '/main';
 
-  // Home
+  // ─── Home ───
+
+  // Home screen route
   static const String home = '/home';
 
-  // Category
+  // ─── Category ───
+
+  // Category details screen route
   static const String categoryDetails = '/category-details';
 
-  // Collection Details
+  // ─── Collection ───
+
+  // Collection details screen route
   static const String collectionDetails = '/collection-details';
 
-  // Product Details
+  // ─── Product ───
+
+  // Product details screen route
   static const String productDetails = '/product-details';
 
-  // Cart
+  // ─── Cart ───
+
+  // Cart screen route
   static const String cart = '/cart';
 
-  // Checkout
+  // ─── Checkout ───
+
+  // Checkout screen route
   static const String checkout = '/checkout';
 
-  // Profile
-  static const String profile = '/profile';
-  static const String editProfile = '/edit-profile'; // ✅ جديد
+  // ─── Profile ───
 
-  // Try-On
+  // Profile screen route
+  static const String profile = '/profile';
+  // Edit profile screen route
+  static const String editProfile = '/edit-profile';
+
+  // ─── Try-On ───
+
+  // Try-on screen route
   static const String tryOn = '/try-on';
 
-  // Notifications
+  // ─── Notifications ───
+
+  // Notifications screen route
   static const String notifications = '/notifications';
 }

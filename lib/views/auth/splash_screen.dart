@@ -1,10 +1,15 @@
 // lib/views/splash/splash_screen.dart
 
+// Flutter material package
 import 'package:flutter/material.dart';
+// App colors
 import '../../core/constants/colors.dart';
+// App fonts
 import '../../core/constants/fonts.dart';
+// Route names
 import '../../routes/route_names.dart';
 
+// Splash screen with animations
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -14,20 +19,26 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  // Animation controller
   late AnimationController _controller;
+  // Fade animation
   late Animation<double> _fadeAnimation;
+  // Slide animation
   late Animation<double> _slideAnimation;
+  // Scale animation
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize animation controller
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     );
 
+    // Fade in animation (0 to 1)
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
@@ -35,6 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
+    // Slide up animation (30 to 0)
     _slideAnimation = Tween<double>(begin: 30, end: 0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -42,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
+    // Scale animation (0.85 to 1.0)
     _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -49,8 +62,10 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
+    // Start animations
     _controller.forward();
 
+    // Navigate to onboarding after 3 seconds
     Future.delayed(const Duration(milliseconds: 3000), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, RouteNames.onboarding);
@@ -75,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: bgColor,
       body: Stack(
         children: [
-          // الخلفية المموجة
+          // Wave background
           Container(
             color: isDark ? AppColors.neutral : AppColors.secondary,
             child: CustomPaint(
@@ -84,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // المحتوى
+          // Content
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -92,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   const Spacer(flex: 2),
 
-                  // ← جديد: Logo Image في الـ Splash (أكبر)
+                  // Animated logo
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
@@ -111,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 24),
 
-                  // THE TACTILE CURATOR
+                  // Tagline text
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
@@ -132,7 +147,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const Spacer(flex: 2),
 
-                  // مؤشر الصفحات
+                  // Page indicator dots
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -146,10 +161,11 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 32),
 
-                  // الفوتر
+                  // Footer info
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Season text
                       Text(
                         'AUTUMN / WINTER\n24',
                         style: TextStyle(
@@ -159,6 +175,7 @@ class _SplashScreenState extends State<SplashScreen>
                           color: AppColors.textSecondary.withValues(alpha: 0.6),
                         ),
                       ),
+                      // Links row
                       Row(
                         children: [
                           Text(
@@ -191,7 +208,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 16),
 
-                  // زر السهم
+                  // Bottom indicator bar
                   Container(
                     width: 48,
                     height: 3,
@@ -211,7 +228,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ← جديد: Logo Widget في الـ Splash (أكبر شوية)
+  // Build logo with fallback text
   Widget _buildLogo(bool isDark) {
     final logoPath = isDark
         ? 'assets/images/logo/logo_dark.png'
@@ -219,9 +236,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Image.asset(
       logoPath,
-      width: 200, // ← كبرت من 140 لـ 200
-      height: 200, // ← كبرت من 140 لـ 200
+      width: 200,
+      height: 200,
       fit: BoxFit.contain,
+      // Fallback text if image fails
       errorBuilder: (context, error, stackTrace) {
         return Text(
           'FITRA',
@@ -237,6 +255,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+  // Build page indicator dot
   Widget _buildDot(bool isActive, bool isDark) {
     return Container(
       width: isActive ? 20 : 6,
@@ -253,7 +272,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// WavePainter
+// Wave background custom painter
 class WavePainter extends CustomPainter {
   final bool isDark;
 
@@ -261,15 +280,15 @@ class WavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Top wave paint
     final paint = Paint()
       ..color = isDark
           ? AppColors.neutralLight.withValues(alpha: 0.3)
           : AppColors.white.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
+    // Top wave path
     final path = Path();
-
-    // موجة علوية
     path.moveTo(0, size.height * 0.15);
     path.quadraticBezierTo(
       size.width * 0.25,
@@ -289,7 +308,7 @@ class WavePainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
-    // موجة سفلية
+    // Bottom wave paint
     final path2 = Path();
     path2.moveTo(0, size.height * 0.88);
     path2.quadraticBezierTo(
@@ -310,13 +329,14 @@ class WavePainter extends CustomPainter {
 
     canvas.drawPath(path2, paint);
 
-    // موجة جانبية
+    // Side wave paint
     final paint3 = Paint()
       ..color = isDark
           ? AppColors.primary.withValues(alpha: 0.1)
           : AppColors.primary.withValues(alpha: 0.05)
       ..style = PaintingStyle.fill;
 
+    // Side wave path
     final path3 = Path();
     path3.moveTo(size.width * 0.8, 0);
     path3.quadraticBezierTo(

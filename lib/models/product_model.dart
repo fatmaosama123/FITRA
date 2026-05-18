@@ -1,16 +1,25 @@
 // lib/models/product_model.dart
 
+// Product data model
 class ProductModel {
+  // Product unique id
   final String id;
+  // Product name
   final String name;
+  // Product subtitle/description
   final String subtitle;
+  // Product price
   final double price;
+  // Product image URL or asset path
   final String imageUrl;
+  // Product badge text (NEW, SUSTAINABLE, etc.)
   final String? badge;
+  // Product category name
   final String category;
-  // ← جديد
+  // Is new arrival flag
   final bool isNewArrival;
 
+  // Constructor
   ProductModel({
     required this.id,
     required this.name,
@@ -19,11 +28,12 @@ class ProductModel {
     required this.imageUrl,
     this.badge,
     required this.category,
-    // ← جديد
     this.isNewArrival = false,
   });
 
-  // Mock data - New Arrivals (زي ما هو بالظبط)
+  // ─── Mock Data ───
+
+  // New arrivals products (local assets)
   static List<ProductModel> get newArrivals => [
     ProductModel(
       id: '1',
@@ -68,7 +78,7 @@ class ProductModel {
     ),
   ];
 
-  // Mock data - Trending (زي ما هو بالظبط)
+  // Trending products (local assets)
   static List<ProductModel> get trending => [
     ProductModel(
       id: '6',
@@ -89,7 +99,7 @@ class ProductModel {
     ),
   ];
 
-  // ← جديد: كل المنتجات من Unsplash (لصفحة الـ Product Listing)
+  // All products with network images (for product listing)
   static List<ProductModel> get allProducts => [
     // Streetwear
     ProductModel(
@@ -176,7 +186,7 @@ class ProductModel {
     ),
   ];
 
-  // ← جديد: جلب منتجات حسب الكاتيجوري
+  // Filter products by category name
   static List<ProductModel> getByCategory(String category) {
     return allProducts.where((product) {
       return product.category.toLowerCase() == category.toLowerCase();

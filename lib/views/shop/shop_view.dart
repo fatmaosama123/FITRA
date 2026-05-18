@@ -14,94 +14,92 @@ class ShopView extends StatelessWidget {
     final categories = controller.categories;
     final seasonalEdits = controller.seasonalEdits;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-
-            Text(
-              'CURATED COLLECTIONS',
-              style: TextStyle(
-                fontFamily: AppFonts.label,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-                letterSpacing: 1.5,
-              ),
-            ),
-
+            // Section label
+            _sectionLabel('CURATED COLLECTIONS'),
             const SizedBox(height: 8),
-
-            Text(
-              'Explore\nCategories',
-              style: TextStyle(
-                fontFamily: AppFonts.headline,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppColors.neutral,
-                height: 1.1,
-              ),
-            ),
-
+            // Page title
+            _pageTitle(isDark),
             const SizedBox(height: 24),
-
+            // Categories list with carousel
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: categories.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                return controller.buildCategoryCard(
-                  categories[index],
-                  context,
-                  isDark,
-                );
-              },
-            ),
-
-            const SizedBox(height: 32),
-
-            Text(
-              'Seasonal Edits',
-              style: TextStyle(
-                fontFamily: AppFonts.headline,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppColors.neutral,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              itemBuilder: (context, index) => controller.buildCategoryCard(
+                categories[index],
+                context,
+                isDark,
               ),
             ),
-
+            const SizedBox(height: 32),
+            // Seasonal edits section
+            _sectionTitle('Seasonal Edits', isDark),
             const SizedBox(height: 16),
-
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: seasonalEdits.length,
-              separatorBuilder: (context, index) => Divider(
+              separatorBuilder: (_, __) => Divider(
                 height: 1,
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.1)
                     : AppColors.neutral.withValues(alpha: 0.1),
               ),
-              itemBuilder: (context, index) {
-                return controller.buildSeasonalEditTile(
-                  seasonalEdits[index],
-                  context,
-                  isDark,
-                );
-              },
+              itemBuilder: (context, index) => controller.buildSeasonalEditTile(
+                seasonalEdits[index],
+                context,
+                isDark,
+              ),
             ),
-
             const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+
+  // Section label (small colored text)
+  Widget _sectionLabel(String text) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: AppFonts.label,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+          letterSpacing: 1.5,
+        ),
+      );
+
+  // Page title
+  Widget _pageTitle(bool isDark) => Text(
+        'Explore\nCategories',
+        style: TextStyle(
+          fontFamily: AppFonts.headline,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : AppColors.neutral,
+          height: 1.1,
+        ),
+      );
+
+  // Section title
+  Widget _sectionTitle(String text, bool isDark) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: AppFonts.headline,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : AppColors.neutral,
+        ),
+      );
 }

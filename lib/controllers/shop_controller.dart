@@ -1,5 +1,6 @@
 // lib/controllers/shop_controller.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/category_model.dart';
 import '../models/product_model.dart';
@@ -8,9 +9,11 @@ import '../core/constants/fonts.dart';
 import '../routes/app_routes.dart';
 
 class ShopController extends ChangeNotifier {
+  // ─── Data Getters ───
   List<CategoryModel> get categories => CategoryModel.allCategories;
   List<Map<String, String>> get seasonalEdits => CategoryModel.seasonalEdits;
 
+  // ─── Navigation ───
   void openCategory(BuildContext context, CategoryModel category) {
     AppRoutes.goToCategoryDetails(context, category.name);
   }
@@ -19,8 +22,7 @@ class ShopController extends ChangeNotifier {
     AppRoutes.goToCollectionDetails(context, title);
   }
 
-  // ========== كارد الكاتيجوري ==========
-
+  // ─── Category Card with Carousel ───
   Widget buildCategoryCard(
     CategoryModel category,
     BuildContext context,
@@ -47,37 +49,9 @@ class ShopController extends ChangeNotifier {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.network(
-                category.imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : category.backgroundColor,
-                    child: const Center(
-                      child: CircularProgressIndicator(color: Colors.white54),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : category.backgroundColor,
-                    child: Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.3)
-                            : category.textColor.withValues(alpha: 0.5),
-                        size: 40,
-                      ),
-                    ),
-                  );
-                },
-              ),
+              // Image carousel (multiple images auto-sliding)
+              _buildImageCarousel(category, isDark),
+              // Bottom gradient overlay
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -92,65 +66,8 @@ class ShopController extends ChangeNotifier {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (category.title.isNotEmpty)
-                      Text(
-                        category.title,
-                        style: TextStyle(
-                          fontFamily: AppFonts.label,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : category.textColor.withValues(alpha: 0.7),
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    if (category.title.isNotEmpty) const SizedBox(height: 4),
-                    Text(
-                      category.subtitle,
-                      style: TextStyle(
-                        fontFamily: AppFonts.headline,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : category.textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      category.description,
-                      style: TextStyle(
-                        fontFamily: AppFonts.body,
-                        fontSize: 12,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.8)
-                            : category.textColor.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward,
-                        color: isDark ? Colors.white : AppColors.neutral,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Category info text
+              _buildCategoryInfo(category, isDark),
             ],
           ),
         ),
@@ -158,8 +75,115 @@ class ShopController extends ChangeNotifier {
     );
   }
 
-  // ========== كارد Seasonal Edit ==========
+  // Build image carousel for category card
+  Widget _buildImageCarousel(CategoryModel category, bool isDark) {
+    // If only 1 image, show static
+    if (category.imageUrls.length == 1) {
+      return _buildImage(category.imageUrls[0], category, isDark);
+    }
 
+    // Multiple images with auto-slide
+    return _CategoryImageCarousel(category: category, isDark: isDark);
+  }
+
+  // Single image builder
+  Widget _buildImage(String url, CategoryModel category, bool isDark) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : category.backgroundColor,
+          child: const Center(
+            child: CircularProgressIndicator(color: Colors.white54),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : category.backgroundColor,
+          child: Center(
+            child: Icon(
+              Icons.image_not_supported,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : category.textColor.withValues(alpha: 0.5),
+              size: 40,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Category info overlay
+  Widget _buildCategoryInfo(CategoryModel category, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (category.title.isNotEmpty)
+            Text(
+              category.title,
+              style: _textStyle(
+                AppFonts.label,
+                10,
+                isDark
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : category.textColor.withValues(alpha: 0.7),
+              ),
+            ),
+          if (category.title.isNotEmpty) const SizedBox(height: 4),
+          Text(
+            category.subtitle,
+            style: _textStyle(
+              AppFonts.headline,
+              24,
+              isDark ? Colors.white : category.textColor,
+              bold: true,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            category.description,
+            style: _textStyle(
+              AppFonts.body,
+              12,
+              isDark
+                  ? Colors.white.withValues(alpha: 0.8)
+                  : category.textColor.withValues(alpha: 0.8),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Arrow button
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.arrow_forward,
+              color: isDark ? Colors.white : AppColors.neutral,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Seasonal Edit Tile ───
   Widget buildSeasonalEditTile(
     Map<String, String> edit,
     BuildContext context,
@@ -173,26 +197,26 @@ class ShopController extends ChangeNotifier {
           children: [
             Text(
               edit['number']!,
-              style: TextStyle(
-                fontFamily: AppFonts.headline,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: isDark
+              style: _textStyle(
+                AppFonts.headline,
+                24,
+                isDark
                     ? Colors.white.withValues(alpha: 0.15)
                     : AppColors.secondaryDark,
+                bold: true,
               ),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Text(
                 edit['title']!,
-                style: TextStyle(
-                  fontFamily: AppFonts.headline,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
+                style: _textStyle(
+                  AppFonts.headline,
+                  16,
+                  isDark
                       ? Colors.white.withValues(alpha: 0.5)
                       : AppColors.neutral,
+                  bold: true,
                 ),
               ),
             ),
@@ -200,6 +224,132 @@ class ShopController extends ChangeNotifier {
           ],
         ),
       ),
+    );
+  }
+
+  // ─── Text Style Helper ───
+  TextStyle _textStyle(
+    String font,
+    double size,
+    Color color, {
+    bool bold = false,
+  }) =>
+      TextStyle(
+        fontFamily: font,
+        fontSize: size,
+        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+        color: color,
+        letterSpacing: font == AppFonts.label ? 1.5 : 0,
+      );
+}
+
+// ─── Stateful Carousel Widget ───
+class _CategoryImageCarousel extends StatefulWidget {
+  final CategoryModel category;
+  final bool isDark;
+
+  const _CategoryImageCarousel({
+    required this.category,
+    required this.isDark,
+  });
+
+  @override
+  State<_CategoryImageCarousel> createState() => _CategoryImageCarouselState();
+}
+
+class _CategoryImageCarouselState extends State<_CategoryImageCarousel> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!_pageController.hasClients) return;
+      final next = (_currentPage + 1) % widget.category.imageUrls.length;
+      _pageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          onPageChanged: (index) => setState(() => _currentPage = index),
+          itemCount: widget.category.imageUrls.length,
+          itemBuilder: (context, index) => Image.network(
+            widget.category.imageUrls[index],
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: widget.isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : widget.category.backgroundColor,
+                child: const Center(
+                  child: CircularProgressIndicator(color: Colors.white54),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: widget.isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : widget.category.backgroundColor,
+                child: Center(
+                  child: Icon(
+                    Icons.image_not_supported,
+                    color: widget.isDark
+                        ? Colors.white.withValues(alpha: 0.3)
+                        : widget.category.textColor.withValues(alpha: 0.5),
+                    size: 40,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        // Page indicators
+        Positioned(
+          top: 16,
+          right: 16,
+          child: Row(
+            children: List.generate(widget.category.imageUrls.length, (index) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.only(left: 6),
+                width: _currentPage == index ? 24 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _currentPage == index
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
     );
   }
 }

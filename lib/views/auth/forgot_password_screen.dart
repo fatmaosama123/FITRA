@@ -1,10 +1,15 @@
 // lib/views/auth/forgot_password_screen.dart
 
+// Flutter material package
 import 'package:flutter/material.dart';
+// App colors
 import '../../core/constants/colors.dart';
+// Auth controller
 import '../../controllers/auth_controller.dart';
+// Route names
 import '../../routes/route_names.dart';
 
+// Forgot password screen
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -13,12 +18,17 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  // Email input controller
   final _emailController = TextEditingController();
+  // Form validation key
   final _formKey = GlobalKey<FormState>();
+  // Auth controller instance
   final _authController = AuthController();
 
+  // Loading state flag
   bool _isLoading = false;
 
+  // Send reset email handler
   void _sendResetEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -48,6 +58,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      // App bar with back button
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -68,16 +79,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
+                // App logo
                 _buildLogo(isDark),
                 const SizedBox(height: 24),
+                // Screen title
                 Text('Forgot Password?', style: _titleStyle(isDark)),
                 const SizedBox(height: 8),
+                // Screen description
                 Text(
                   'Enter your email address and we\'ll send you a link to reset your password.',
                   textAlign: TextAlign.center,
                   style: _subHeaderStyle(isDark),
                 ),
                 const SizedBox(height: 32),
+                // Form card
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 320),
@@ -86,8 +101,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Email label
                       AuthController.buildLabel('EMAIL ADDRESS', isDark),
                       const SizedBox(height: 6),
+                      // Email input field
                       AuthController.buildTextField(
                         controller: _emailController,
                         hint: 'name@example.com',
@@ -96,6 +113,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 20),
+                      // Submit button
                       AuthController.buildGradientButton(
                         text: 'Send Reset Link',
                         isLoading: _isLoading,
@@ -105,6 +123,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Back to login link
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Text(
@@ -125,6 +144,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
+  // Build app logo with fallback text
   Widget _buildLogo(bool isDark) {
     final logoPath = isDark
         ? 'assets/images/logo/logo_dark.png'
@@ -136,6 +156,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         width: 120,
         height: 120,
         fit: BoxFit.contain,
+        // Fallback text if image fails
         errorBuilder: (context, error, stackTrace) {
           return Text(
             'FITRA',
@@ -152,6 +173,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
+  // Title text style
   TextStyle _titleStyle(bool isDark) => TextStyle(
     fontFamily: 'PlusJakartaSans',
     fontSize: 24,
@@ -159,6 +181,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     color: isDark ? AppColors.white : AppColors.neutral,
   );
 
+  // Subtitle text style
   TextStyle _subHeaderStyle(bool isDark) => TextStyle(
     fontFamily: 'BeVietnamPro',
     fontSize: 12,
@@ -168,6 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         : AppColors.textSecondary,
   );
 
+  // Card decoration style
   BoxDecoration _cardDecoration(bool isDark) => BoxDecoration(
     color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.white,
     borderRadius: BorderRadius.circular(20),
